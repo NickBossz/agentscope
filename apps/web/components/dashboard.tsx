@@ -52,6 +52,9 @@ export function Dashboard() {
   const selectedOrganization = organizations.find(
     (organization) => organization.id === selectedOrganizationId,
   );
+  const selectedProject = projects.find(
+    (project) => project.id === selectedProjectId,
+  );
   const canAdminister = selectedOrganization
     ? selectedOrganization.role === "owner" ||
       selectedOrganization.role === "admin"
@@ -170,6 +173,45 @@ export function Dashboard() {
     } catch (caught: unknown) {
       setError(
         caught instanceof Error ? caught.message : "Erro ao criar projeto.",
+      );
+    }
+  }
+
+  async function updateProject(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!selectedProject) {
+      return;
+    }
+
+    const form = new FormData(event.currentTarget);
+    setError(null);
+    try {
+      await apiRequest(`/v1/projects/${selectedProject.id}`, {
+        method: "PATCH",
+        body: JSON.stringify({
+          name: String(form.get("name") ?? ""),
+          slug: String(form.get("slug") ?? ""),
+          description: String(form.get("description") ?? ""),
+          defaultEnvironment: String(form.get("environment") ?? "development"),
+        }),
+      });
+      await loadProjects(selectedOrganizationId);
+    } catch (caught: unknown) {
+      setError(
+        caught instanceof Error ? caught.message : "Erro ao atualizar projeto.",
+      );
+    }
+  }
+
+  async function archiveProject(projectId: string) {
+    setError(null);
+    setCreatedKey(null);
+    try {
+      await apiRequest(`/v1/projects/${projectId}`, { method: "DELETE" });
+      await loadProjects(selectedOrganizationId);
+    } catch (caught: unknown) {
+      setError(
+        caught instanceof Error ? caught.message : "Erro ao arquivar projeto.",
       );
     }
   }
@@ -328,6 +370,7 @@ export function Dashboard() {
                     <span className="font-medium">{project.name}</span>
                     <span className="block text-xs text-zinc-500">
                       {project.slug}
+                      {project.archivedAt ? " · archived" : ""}
                     </span>
                   </button>
                 ))}
@@ -372,6 +415,60 @@ export function Dashboard() {
                 </button>
               </form>
             ) : null}
+            {selectedProject && canAdminister ? (
+              <form
+                className="mt-5 grid gap-3 border-t border-zinc-800 pt-5"
+                key={selectedProject.id}
+                onSubmit={updateProject}
+              >
+                <h3 className="font-medium">Editar projeto selecionado</h3>
+                <input
+                  className="field"
+                  defaultValue={selectedProject.name}
+                  name="name"
+                  required
+                />
+                <input
+                  className="field"
+                  defaultValue={selectedProject.slug}
+                  name="slug"
+                  pattern="[a-z0-9]+(?:-[a-z0-9]+)*"
+                  required
+                />
+                <textarea
+                  className="field"
+                  defaultValue={selectedProject.description ?? ""}
+                  name="description"
+                  rows={2}
+                />
+                <select
+                  className="field"
+                  defaultValue={selectedProject.defaultEnvironment}
+                  name="environment"
+                >
+                  <option value="development">Development</option>
+                  <option value="staging">Staging</option>
+                  <option value="production">Production</option>
+                </select>
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    className="button"
+                    disabled={Boolean(selectedProject.archivedAt)}
+                    type="submit"
+                  >
+                    Salvar projeto
+                  </button>
+                  <button
+                    className="button button-danger"
+                    disabled={Boolean(selectedProject.archivedAt)}
+                    onClick={() => archiveProject(selectedProject.id)}
+                    type="button"
+                  >
+                    Arquivar projeto
+                  </button>
+                </div>
+              </form>
+            ) : null}
           </div>
         </section>
 
@@ -396,7 +493,9 @@ export function Dashboard() {
             </div>
           ) : null}
 
-          {selectedProjectId && canAdminister ? (
+          {selectedProjectId &&
+          canAdminister &&
+          !selectedProject?.archivedAt ? (
             <form
               className="my-5 grid gap-3 sm:grid-cols-[1fr_180px_auto]"
               onSubmit={createKey}
