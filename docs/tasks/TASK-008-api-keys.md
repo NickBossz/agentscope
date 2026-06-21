@@ -1,6 +1,6 @@
 # TASK-008 — Implementar gerenciamento seguro de API keys
 
-**Status:** pending  
+**Status:** in-progress  
 **Dependências:** TASK-007
 
 ## Objetivo
@@ -27,3 +27,7 @@ Permitir criar, listar, revogar e rotacionar chaves de projeto com armazenamento
 
 - Criação, autenticação, revogação, rotação e chave inválida.
 - Confirmar ausência do valor bruto em persistência e logs.
+
+## Estado atual
+
+Criação, listagem, autenticação, revogação, rotação, auditoria e exibição única foram implementadas. A validação integrada contra PostgreSQL está pendente.

@@ -1,6 +1,6 @@
 # TASK-001 — Estruturar o monorepo
 
-**Status:** pending  
+**Status:** done  
 **Dependências:** nenhuma
 
 ## Objetivo
@@ -21,7 +21,7 @@ Criar a base do monorepo Bun com os aplicativos e pacotes definidos na arquitetu
 - Cada workspace possui responsabilidade e entrypoint claros.
 - `bun run typecheck` funciona a partir da raiz.
 - Nenhum segredo ou `.env` real é versionado.
-- A estrutura segue `docs/AGENTS.md`.
+- A estrutura segue `AGENTS.md`.
 
 ## Verificação
 

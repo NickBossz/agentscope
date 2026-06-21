@@ -1,0 +1,93 @@
+@import "tailwindcss";
+
+:root {
+  color-scheme: dark;
+  --background: #09090b;
+  --panel: #111115;
+  --panel-soft: #18181d;
+  --border: #2b2b32;
+  --text: #f4f4f5;
+  --muted: #a1a1aa;
+  --accent: #7c3aed;
+  --accent-bright: #8b5cf6;
+  --danger: #ef4444;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  min-height: 100vh;
+  margin: 0;
+  background:
+    radial-gradient(
+      circle at 10% -10%,
+      rgba(124, 58, 237, 0.18),
+      transparent 32rem
+    ),
+    var(--background);
+  color: var(--text);
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+.shell {
+  width: min(1120px, calc(100% - 32px));
+  margin: 0 auto;
+}
+
+.panel {
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: color-mix(in srgb, var(--panel) 94%, transparent);
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.22);
+}
+
+.field {
+  width: 100%;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--panel-soft);
+  color: var(--text);
+  padding: 11px 12px;
+  outline: none;
+}
+
+.field:focus {
+  border-color: var(--accent-bright);
+  box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.14);
+}
+
+.button {
+  border: 0;
+  border-radius: 10px;
+  background: var(--accent);
+  color: white;
+  padding: 11px 16px;
+  font-weight: 700;
+}
+
+.button:hover {
+  background: var(--accent-bright);
+}
+
+.button-secondary {
+  border: 1px solid var(--border);
+  background: var(--panel-soft);
+  color: var(--text);
+}
+
+.button-danger {
+  background: #7f1d1d;
+}

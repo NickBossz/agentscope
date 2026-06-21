@@ -1,6 +1,6 @@
 # TASK-003 — Criar ambiente local com Docker Compose
 
-**Status:** pending  
+**Status:** in-progress  
 **Dependências:** TASK-001
 
 ## Objetivo
@@ -27,3 +27,7 @@ Permitir que todo o ambiente local seja iniciado por Docker Compose.
 
 - Testar reinício dos containers.
 - Confirmar conectividade entre os serviços e health endpoints.
+
+## Estado atual
+
+A configuração foi criada, mas a validação com `docker compose` está pendente porque Docker não está instalado no ambiente atual.

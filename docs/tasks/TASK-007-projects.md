@@ -1,6 +1,6 @@
 # TASK-007 — Implementar projetos e configurações
 
-**Status:** pending  
+**Status:** in-progress  
 **Dependências:** TASK-006
 
 ## Objetivo
@@ -26,3 +26,7 @@ Permitir criar, editar, selecionar e arquivar projetos dentro de uma organizaç�
 
 - CRUD, slug duplicado, arquivamento e acesso cruzado.
 - Estados vazio, loading e erro na interface.
+
+## Estado atual
+
+APIs de criação, atualização, listagem e arquivamento, configurações e interface inicial foram implementadas. Os testes integrados permanecem pendentes.
