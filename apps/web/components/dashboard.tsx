@@ -47,6 +47,7 @@ export function Dashboard() {
   const [createdKey, setCreatedKey] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [creatingKey, setCreatingKey] = useState(false);
 
   const selectedOrganization = organizations.find(
     (organization) => organization.id === selectedOrganizationId,
@@ -119,8 +120,9 @@ export function Dashboard() {
 
   async function createOrganization(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    const formElement = event.currentTarget;
     setError(null);
-    const form = new FormData(event.currentTarget);
+    const form = new FormData(formElement);
     try {
       const result = await apiRequest<{ organization: Organization }>(
         "/v1/organizations",
@@ -132,7 +134,7 @@ export function Dashboard() {
           }),
         },
       );
-      event.currentTarget.reset();
+      formElement.reset();
       await loadOrganizations();
       setSelectedOrganizationId(result.organization.id);
     } catch (caught: unknown) {
@@ -144,8 +146,9 @@ export function Dashboard() {
 
   async function createProject(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    const formElement = event.currentTarget;
     setError(null);
-    const form = new FormData(event.currentTarget);
+    const form = new FormData(formElement);
     try {
       const result = await apiRequest<{ project: Project }>("/v1/projects", {
         method: "POST",
@@ -161,7 +164,7 @@ export function Dashboard() {
           redactedFields: [],
         }),
       });
-      event.currentTarget.reset();
+      formElement.reset();
       await loadProjects(selectedOrganizationId);
       setSelectedProjectId(result.project.id);
     } catch (caught: unknown) {
@@ -173,9 +176,14 @@ export function Dashboard() {
 
   async function createKey(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (creatingKey) {
+      return;
+    }
+    const formElement = event.currentTarget;
     setError(null);
     setCreatedKey(null);
-    const form = new FormData(event.currentTarget);
+    setCreatingKey(true);
+    const form = new FormData(formElement);
     try {
       const result = await apiRequest<{
         apiKey: ApiKeySummary & { key: string };
@@ -186,13 +194,15 @@ export function Dashboard() {
           environment: String(form.get("environment") ?? "development"),
         }),
       });
-      event.currentTarget.reset();
+      formElement.reset();
       setCreatedKey(result.apiKey.key);
       await loadKeys(selectedProjectId);
     } catch (caught: unknown) {
       setError(
         caught instanceof Error ? caught.message : "Erro ao criar chave.",
       );
+    } finally {
+      setCreatingKey(false);
     }
   }
 
@@ -406,8 +416,8 @@ export function Dashboard() {
                 <option value="staging">Staging</option>
                 <option value="production">Production</option>
               </select>
-              <button className="button" type="submit">
-                Gerar chave
+              <button className="button" disabled={creatingKey} type="submit">
+                {creatingKey ? "Gerando…" : "Gerar chave"}
               </button>
             </form>
           ) : null}
