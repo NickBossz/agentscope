@@ -1,6 +1,6 @@
 # TASK-004 — Modelar banco de dados e migrações
 
-**Status:** pending  
+**Status:** in-progress  
 **Dependências:** TASK-001, TASK-002, TASK-003
 
 ## Objetivo
@@ -28,3 +28,7 @@ Implementar o modelo PostgreSQL do MVP com Drizzle e isolamento explícito por t
 
 - Testar constraints, transações, índices críticos e isolamento.
 - Executar migration check em banco limpo.
+
+## Estado atual
+
+O schema, a migração gerada e o `drizzle-kit check` estão concluídos. A aplicação da migração e os testes de integração aguardam um PostgreSQL disponível.

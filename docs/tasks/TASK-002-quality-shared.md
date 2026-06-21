@@ -1,6 +1,6 @@
 # TASK-002 — Configurar qualidade e contratos compartilhados
 
-**Status:** pending  
+**Status:** done  
 **Dependências:** TASK-001
 
 ## Objetivo

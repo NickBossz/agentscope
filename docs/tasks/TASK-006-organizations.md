@@ -1,6 +1,6 @@
 # TASK-006 — Implementar organizações e isolamento de tenant
 
-**Status:** pending  
+**Status:** in-progress  
 **Dependências:** TASK-004, TASK-005
 
 ## Objetivo
@@ -26,3 +26,7 @@ Criar organizações e garantir que todo acesso seja limitado ao tenant autoriza
 
 - Testar permissões por papel.
 - Testar tentativas de leitura e escrita entre organizações.
+
+## Estado atual
+
+Criação, listagem, papéis e helpers de autorização foram implementados. A matriz de integração cross-tenant ainda precisa ser executada.

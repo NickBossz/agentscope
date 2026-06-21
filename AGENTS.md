@@ -6,7 +6,7 @@ This file defines the instructions that AI coding agents must follow when workin
 
 AgentScope is an observability platform for AI agents. It collects traces and spans from AI applications and displays prompts, responses, tool calls, token usage, estimated cost, errors, evaluations, and execution trees.
 
-Read `PRD.md` before implementing features. The PRD is the source of truth for product scope and behavior.
+Read `docs/PRD.md` before implementing features. The PRD is the source of truth for product scope and behavior.
 
 ## 2. Main Stack
 
@@ -478,7 +478,7 @@ Public endpoints and SDK methods must include examples.
 
 Before coding:
 
-1. Read `PRD.md`.
+1. Read `docs/PRD.md`.
 2. Inspect the current repository structure.
 3. Identify existing conventions.
 4. Locate related schemas, routes, components, and tests.

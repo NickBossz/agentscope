@@ -1,6 +1,6 @@
 # TASK-005 — Implementar autenticação de usuários
 
-**Status:** pending  
+**Status:** in-progress  
 **Dependências:** TASK-002, TASK-004
 
 ## Objetivo
@@ -27,3 +27,7 @@ Permitir cadastro, login, logout e acesso seguro a páginas e APIs protegidas.
 
 - Integração de cadastro, login, logout e proteção de rota.
 - Casos de credenciais inválidas, sessão expirada e redirect inseguro.
+
+## Estado atual
+
+Cadastro, login, logout, cookies HttpOnly, validação de origem e telas foram implementados. Testes integrados com PostgreSQL ainda estão pendentes.
