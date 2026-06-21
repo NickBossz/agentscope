@@ -2,6 +2,7 @@ import {
   apiKeys,
   auditLogs,
   createDatabase,
+  isDatabaseConnectionError,
   organizationMembers,
   organizations,
   projectSettings,
@@ -21,7 +22,7 @@ import {
   updateProjectSchema,
 } from "@agentscope/shared";
 import { cors } from "@elysiajs/cors";
-import { and, desc, eq, isNull } from "drizzle-orm";
+import { and, desc, eq, isNull, sql } from "drizzle-orm";
 import { Elysia } from "elysia";
 import { ZodError } from "zod";
 import { requireSameOrigin, requireUser } from "./auth";
@@ -90,6 +91,21 @@ const app = new Elysia()
       };
     }
 
+    if (isDatabaseConnectionError(error)) {
+      database.reset();
+      console.error(
+        "Database connection was recycled after a connection error.",
+      );
+      set.status = 503;
+      return {
+        error: {
+          code: "DATABASE_UNAVAILABLE",
+          message: "The database is temporarily unavailable.",
+          details: {},
+        },
+      };
+    }
+
     console.error("Unhandled API error", {
       name: error instanceof Error ? error.name : "UnknownError",
     });
@@ -102,7 +118,24 @@ const app = new Elysia()
       },
     };
   })
-  .get("/health", () => successEnvelope({ status: "ok" }))
+  .get("/health", async ({ set }) => {
+    try {
+      await database.db.execute(sql`select 1`);
+      return successEnvelope({ status: "ok", database: "connected" });
+    } catch (error: unknown) {
+      if (isDatabaseConnectionError(error)) {
+        database.reset();
+      }
+      set.status = 503;
+      return {
+        error: {
+          code: "DATABASE_UNAVAILABLE",
+          message: "The database is temporarily unavailable.",
+          details: {},
+        },
+      };
+    }
+  })
   .post("/v1/auth/signup", async ({ body, request, set }) => {
     requireSameOrigin(request);
     const input = signUpSchema.parse(body);
