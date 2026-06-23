@@ -25,10 +25,14 @@ import { cors } from "@elysiajs/cors";
 import { and, desc, eq, isNull, sql } from "drizzle-orm";
 import { Elysia } from "elysia";
 import { ZodError } from "zod";
+import { authenticateProjectApiKey } from "./api-key-auth";
 import { requireSameOrigin, requireUser } from "./auth";
 import { requireOrganizationRole, requireProjectRole } from "./authorization";
+import { createBatchIngestionRoutes } from "./batch-ingestion";
 import { config } from "./config";
 import { databaseErrorCode } from "./database-errors";
+import { createIngestionAdmission } from "./ingestion-admission";
+import { createRedisIngestionPublisher } from "./ingestion-queue";
 import {
   createApiKey,
   createOpaqueToken,
@@ -36,8 +40,15 @@ import {
   hashSecret,
   sessionCookie,
 } from "./security";
+import { createSpanIngestionRoutes } from "./span-ingestion";
+import { createTraceIngestionRoutes } from "./trace-ingestion";
 
 const database = createDatabase(config.DATABASE_URL);
+const ingestionPublisher = createRedisIngestionPublisher(config.REDIS_URL);
+const ingestionAdmission = createIngestionAdmission(
+  database.db,
+  config.REDIS_URL,
+);
 const isProduction = config.NODE_ENV === "production";
 
 function requiredResult<TValue>(
@@ -63,7 +74,7 @@ const app = new Elysia()
       methods: ["GET", "POST", "PATCH", "DELETE", "OPTIONS"],
     }),
   )
-  .onError(({ error, set }) => {
+  .onError(({ code, error, set }) => {
     if (error instanceof DomainError) {
       set.status = error.status;
       return errorEnvelope(error);
@@ -76,6 +87,17 @@ const app = new Elysia()
           code: "VALIDATION_ERROR",
           message: "The request payload is invalid.",
           details: { issues: error.issues },
+        },
+      };
+    }
+
+    if (code === "NOT_FOUND") {
+      set.status = 404;
+      return {
+        error: {
+          code: "NOT_FOUND",
+          message: "The requested endpoint was not found.",
+          details: {},
         },
       };
     }
@@ -136,6 +158,27 @@ const app = new Elysia()
       };
     }
   })
+  .use(
+    createTraceIngestionRoutes({
+      authenticate: (rawKey) => authenticateProjectApiKey(database.db, rawKey),
+      publisher: ingestionPublisher,
+      admission: ingestionAdmission,
+    }),
+  )
+  .use(
+    createSpanIngestionRoutes({
+      authenticate: (rawKey) => authenticateProjectApiKey(database.db, rawKey),
+      publisher: ingestionPublisher,
+      admission: ingestionAdmission,
+    }),
+  )
+  .use(
+    createBatchIngestionRoutes({
+      authenticate: (rawKey) => authenticateProjectApiKey(database.db, rawKey),
+      publisher: ingestionPublisher,
+      admission: ingestionAdmission,
+    }),
+  )
   .post("/v1/auth/signup", async ({ body, request, set }) => {
     requireSameOrigin(request);
     const input = signUpSchema.parse(body);
@@ -673,6 +716,8 @@ const app = new Elysia()
 console.info(`AgentScope API is running at ${app.server?.url}`);
 
 process.on("SIGTERM", async () => {
+  ingestionPublisher.close();
+  ingestionAdmission.close();
   await database.pool.end();
   process.exit(0);
 });

@@ -1,6 +1,6 @@
 # TASK-015 — Implementar tokens e estimativa de custos
 
-**Status:** pending  
+**Status:** done
 **Dependências:** TASK-004, TASK-014
 
 ## Objetivo
@@ -27,3 +27,18 @@ Calcular tokens e custos de forma determinística, histórica e decimal-safe.
 
 - Casos de input/output/cache, preço desconhecido e mudança de vigência.
 - Testes unitários com valores de precisão crítica.
+
+## Implementação
+
+O cálculo usa inteiros escalados com `BigInt`, sem ponto flutuante:
+
+```text
+input tokens × input price
++ output tokens × output price
++ cached tokens × cached input price
+```
+
+Preços são selecionados por provider, modelo e vigência do evento. Traces e
+spans preservam `modelPriceId`, impedindo que mudanças futuras alterem custos
+históricos. Preço ausente produz custo `null` (`unknown`), inclusive nos
+resumos agregados.

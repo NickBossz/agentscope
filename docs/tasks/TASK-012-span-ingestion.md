@@ -1,6 +1,6 @@
 # TASK-012 — Implementar ingestão de spans
 
-**Status:** pending  
+**Status:** done
 **Dependências:** TASK-011
 
 ## Objetivo
@@ -27,3 +27,23 @@ Permitir adicionar e atualizar spans aninhados em um trace.
 
 - Span raiz, aninhado, órfão temporário e update.
 - Tentativas de associar span a trace de outro projeto.
+
+## Implementação
+
+Endpoints:
+
+```text
+POST  /v1/traces/:traceId/spans
+PATCH /v1/spans/:spanId
+```
+
+Os endpoints usam os eventos `span.create` e `span.update` compartilhados. O
+`traceId` ou `spanId` do path deve coincidir com o payload.
+
+Parents não são consultados durante a ingestão. `parentSpanId` é preservado
+como identificador externo, permitindo que filhos e spans temporariamente
+órfãos cheguem antes do parent. A hierarquia nunca é inferida pela ordem de
+recebimento.
+
+Organização e projeto são derivados exclusivamente da API key e anexados ao
+evento seguro antes da publicação no Redis Stream.
