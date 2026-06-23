@@ -12,6 +12,9 @@
     "test": "bun test"
   },
   "dependencies": {
-    "@agentscope/shared": "workspace:*"
+    "@agentscope/database": "workspace:*",
+    "@agentscope/shared": "workspace:*",
+    "drizzle-orm": "^0.44.2",
+    "zod": "^4.0.5"
   }
 }

@@ -1,5 +1,5 @@
 import type { Database } from "@agentscope/database";
-import { apiKeys, projects } from "@agentscope/database";
+import { apiKeys, projectSettings, projects } from "@agentscope/database";
 import { DomainError } from "@agentscope/shared";
 import { and, eq, gt, isNull, or } from "drizzle-orm";
 import { config } from "./config";
@@ -10,6 +10,11 @@ export interface AuthenticatedProjectKey {
   projectId: string;
   organizationId: string;
   environment: "development" | "staging" | "production";
+  settings: {
+    capturePrompts: boolean;
+    captureResponses: boolean;
+    redactedFields: string[];
+  };
 }
 
 export async function authenticateProjectApiKey(
@@ -28,9 +33,16 @@ export async function authenticateProjectApiKey(
       projectId: apiKeys.projectId,
       organizationId: apiKeys.organizationId,
       environment: apiKeys.environment,
+      capturePrompts: projectSettings.capturePrompts,
+      captureResponses: projectSettings.captureResponses,
+      redactedFields: projectSettings.redactedFields,
     })
     .from(apiKeys)
     .innerJoin(projects, eq(projects.id, apiKeys.projectId))
+    .innerJoin(
+      projectSettings,
+      eq(projectSettings.projectId, apiKeys.projectId),
+    )
     .where(
       and(
         eq(apiKeys.prefix, prefix),
@@ -51,5 +63,10 @@ export async function authenticateProjectApiKey(
     projectId: candidate.projectId,
     organizationId: candidate.organizationId,
     environment: candidate.environment,
+    settings: {
+      capturePrompts: candidate.capturePrompts,
+      captureResponses: candidate.captureResponses,
+      redactedFields: candidate.redactedFields,
+    },
   };
 }

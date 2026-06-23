@@ -1,6 +1,6 @@
 # TASK-014 — Implementar filas e worker
 
-**Status:** pending  
+**Status:** done
 **Dependências:** TASK-003, TASK-004, TASK-013
 
 ## Objetivo
@@ -28,3 +28,17 @@ Processar eventos aceitos de forma assíncrona, idempotente e recuperável.
 
 - Processamento feliz, retry, poison message, concorrência e restart.
 - Testar idempotência entre fila e banco.
+
+## Implementação
+
+O worker consome o Redis Stream `agentscope:ingestion` pelo consumer group
+`agentscope-workers`.
+
+- mensagens são processadas em transação;
+- eventos já processados são ignorados com segurança;
+- falhas são reenfileiradas até três tentativas;
+- falhas permanentes vão para `agentscope:ingestion:dead-letter`;
+- mensagens abandonadas são recuperadas com `XAUTOCLAIM`;
+- a confirmação `XACK` ocorre somente após persistência ou encaminhamento para
+  retry/dead letter;
+- shutdown fecha Redis e PostgreSQL de forma graciosa.

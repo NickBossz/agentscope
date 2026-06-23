@@ -8,6 +8,13 @@
       "when": 1781994928666,
       "tag": "0000_cloudy_meltdown",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1782172513923,
+      "tag": "0001_solid_boomerang",
+      "breakpoints": true
     }
   ]
 }

@@ -1,6 +1,6 @@
 # TASK-016 — Persistir tool calls, erros e resumos
 
-**Status:** pending  
+**Status:** done
 **Dependências:** TASK-014, TASK-015
 
 ## Objetivo
@@ -27,3 +27,15 @@ Normalizar dados necessários para investigação rápida e consultas eficientes
 
 - Tool com retry, span falho e múltiplos erros.
 - Eventos fora de ordem e recomputação de resumo.
+
+## Implementação
+
+- tool calls são substituídas deterministicamente por span durante
+  reprocessamento;
+- erros são normalizados com categoria, origem e retry;
+- duração é derivada de `startedAt` e `endedAt` quando não é enviada;
+- tokens e custos dos spans são recomputados no trace;
+- qualquer span em erro deriva status de trace `error`;
+- custo agregado fica desconhecido quando algum span com tokens não possui
+  preço;
+- spans fora de ordem convergem após retries sem duplicar tools ou erros.

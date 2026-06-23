@@ -41,6 +41,12 @@ export const auditActionEnum = pgEnum("audit_action", [
   "api_key.rotated",
   "api_key.revoked",
 ]);
+export const ingestionEventStatusEnum = pgEnum("ingestion_event_status", [
+  "reserved",
+  "queued",
+  "processed",
+  "failed",
+]);
 
 const timestamps = {
   createdAt: timestamp("created_at", { withTimezone: true })
@@ -227,6 +233,41 @@ export const auditLogs = pgTable(
   ],
 );
 
+export const ingestionEvents = pgTable(
+  "ingestion_events",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    organizationId: uuid("organization_id")
+      .notNull()
+      .references(() => organizations.id, { onDelete: "cascade" }),
+    projectId: uuid("project_id")
+      .notNull()
+      .references(() => projects.id, { onDelete: "cascade" }),
+    apiKeyId: uuid("api_key_id").references(() => apiKeys.id, {
+      onDelete: "set null",
+    }),
+    eventId: varchar("event_id", { length: 128 }).notNull(),
+    eventType: varchar("event_type", { length: 32 }).notNull(),
+    payload: jsonb("payload").$type<Record<string, unknown>>().notNull(),
+    status: ingestionEventStatusEnum("status").notNull().default("reserved"),
+    queueId: varchar("queue_id", { length: 64 }),
+    attempts: integer("attempts").notNull().default(0),
+    lastErrorCode: varchar("last_error_code", { length: 120 }),
+    processedAt: timestamp("processed_at", { withTimezone: true }),
+    ...timestamps,
+  },
+  (table) => [
+    uniqueIndex("ingestion_events_project_event_unique").on(
+      table.projectId,
+      table.eventId,
+    ),
+    index("ingestion_events_status_created_idx").on(
+      table.status,
+      table.createdAt,
+    ),
+  ],
+);
+
 export const traces = pgTable(
   "traces",
   {
@@ -247,16 +288,21 @@ export const traces = pgTable(
     durationMs: bigint("duration_ms", { mode: "number" }),
     input: jsonb("input"),
     output: jsonb("output"),
+    messages: jsonb("messages").$type<unknown[]>(),
     userExternalId: varchar("user_external_id", { length: 240 }),
     sessionExternalId: varchar("session_external_id", { length: 240 }),
     model: varchar("model", { length: 240 }),
     provider: varchar("provider", { length: 120 }),
+    modelParameters: jsonb("model_parameters").$type<Record<string, unknown>>(),
     inputTokens: bigint("input_tokens", { mode: "number" }),
     outputTokens: bigint("output_tokens", { mode: "number" }),
     cachedTokens: bigint("cached_tokens", { mode: "number" }),
     reasoningTokens: bigint("reasoning_tokens", { mode: "number" }),
     totalTokens: bigint("total_tokens", { mode: "number" }),
     estimatedCost: numeric("estimated_cost", { precision: 30, scale: 12 }),
+    modelPriceId: uuid("model_price_id").references(() => modelPrices.id, {
+      onDelete: "set null",
+    }),
     tags: jsonb("tags").$type<string[]>().notNull().default([]),
     metadata: jsonb("metadata")
       .$type<Record<string, unknown>>()
@@ -306,14 +352,19 @@ export const spans = pgTable(
     durationMs: bigint("duration_ms", { mode: "number" }),
     input: jsonb("input"),
     output: jsonb("output"),
+    messages: jsonb("messages").$type<unknown[]>(),
     model: varchar("model", { length: 240 }),
     provider: varchar("provider", { length: 120 }),
+    modelParameters: jsonb("model_parameters").$type<Record<string, unknown>>(),
     inputTokens: bigint("input_tokens", { mode: "number" }),
     outputTokens: bigint("output_tokens", { mode: "number" }),
     cachedTokens: bigint("cached_tokens", { mode: "number" }),
     reasoningTokens: bigint("reasoning_tokens", { mode: "number" }),
     totalTokens: bigint("total_tokens", { mode: "number" }),
     estimatedCost: numeric("estimated_cost", { precision: 30, scale: 12 }),
+    modelPriceId: uuid("model_price_id").references(() => modelPrices.id, {
+      onDelete: "set null",
+    }),
     tags: jsonb("tags").$type<string[]>().notNull().default([]),
     metadata: jsonb("metadata")
       .$type<Record<string, unknown>>()
